@@ -1,0 +1,99 @@
+{
+  "name": "Global Job Intelligence System (Dynamic)",
+  "nodes": [
+    {
+      "parameters": {
+        "path": "trigger-crawler",
+        "options": {}
+      },
+      "id": "1",
+      "name": "Webhook Trigger",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [
+        100,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "command": "=python job_crawler.py --site \"{{ $json.query.site || 'seek' }}\" --keywords \"{{ $json.query.keywords || 'data analyst' }}\" --location \"{{ $json.query.location || 'Auckland' }}\" --max-pages {{ $json.query.max_pages || 5 }} --email \"{{ $json.query.email || 'user@example.com' }}\""
+      },
+      "id": "2",
+      "name": "Run Dynamic Crawler",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [
+        350,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "fileSelector": "={{ $json.stdout.trim() }}"
+      },
+      "id": "3",
+      "name": "Read Excel Report",
+      "type": "n8n-nodes-base.readBinaryFiles",
+      "typeVersion": 1,
+      "position": [
+        550,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "toEmail": "={{ ($node[\"Webhook Trigger\"].json.query.email) ? $node[\"Webhook Trigger\"].json.query.email : 'user@example.com' }}",
+        "subject": "Job Market Report: {{ $node[\"Webhook Trigger\"].json.query.keywords || 'Recent Jobs' }}",
+        "text": "Attached is your requested job market report.",
+        "attachments": "data"
+      },
+      "id": "4",
+      "name": "Email Report",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2,
+      "position": [
+        750,
+        300
+      ]
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook Trigger": {
+      "main": [
+        [
+          {
+            "node": "Run Dynamic Crawler",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Run Dynamic Crawler": {
+      "main": [
+        [
+          {
+            "node": "Read Excel Report",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read Excel Report": {
+      "main": [
+        [
+          {
+            "node": "Email Report",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {}
+}

@@ -1,0 +1,28 @@
+{
+  "// comment": "Specify site name + keywords + location. The crawler handles all pagination automatically.",
+  "jobs": [
+    {
+      "site": "seek",
+      "keywords": "data analyst",
+      "location": "Auckland"
+    },
+    {
+      "site": "linkedin",
+      "keywords": "data analyst",
+      "location": "New Zealand"
+    },
+    {
+      "site": "trademe",
+      "keywords": "data analyst",
+      "location": "Auckland"
+    }
+  ],
+  "filters": {
+    "level": ["Graduate", "Junior", "Mid"],
+    "type": ["Full-time", "Contract"],
+    "keywords": ["Python", "SQL", "Excel"]
+  },
+  "max_pages": 5,
+  "deduplication": true,
+  "email": "user@example.com"
+}
