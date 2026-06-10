@@ -19,8 +19,8 @@
 
 - **Automated Efficiency**: Manually searching through Seek, LinkedIn, and TradeMe daily is time-consuming. This system automates the heavy lifting.
 - **Cross-Site Intelligence**: Jobs are often cross-posted. The fuzzy deduplication ensures you only see unique opportunities, saving review time.
-- **Structured Data**: Instead of browser tabs, you get a clean, sortable Excel report with all key details (Position, Company, JD, Source) in one place.
-- **Extensible Architecture**: The plugin-based design means new job boards can be added with minimal effort, making it a future-proof tool for market intelligence.
+- **Structured Data**: Instead of browser tabs, you get a clean, sortable Excel report with all key details in one place.
+- **Extensible Architecture**: The plugin-based design means new job boards can be added with minimal effort.
 
 ---
 
@@ -32,15 +32,34 @@
 | 2 | Run `python job_crawler.py` — or trigger via n8n webhook |
 | 3 | Crawler hits **Seek NZ, LinkedIn NZ, and TradeMe** — up to **5 pages each** |
 | 4 | Fuzzy deduplication removes cross-site duplicates |
-| 5 | A structured Excel report lands in your folder (and email) |
+| 5 | A structured Excel report lands in your folder (and email via n8n) |
 
 ---
 
 ## Sample Output
 
-![Excel Report Output](docs/job_report_demo.png)
+Running locally produces `job_report_YYYYMMDD_HHMMSS.xlsx` with columns like:
 
-> *9-column structured report: Position · Level · Company · Link · JD · Key Notice · Expiry · Source · Status*
+| Column | Description |
+|--------|-------------|
+| Position | Job title |
+| Level | Inferred seniority |
+| Company | Employer name |
+| Link | Source URL |
+| JD | Job description excerpt |
+| Key Notice | Salary / visa / highlights |
+| Expiry | Closing date if available |
+| Source | seek / linkedin / trademe |
+| Status | Filter classification |
+
+**Try it yourself (Seek, 1 page):**
+
+```bash
+pip install -r requirements.txt
+python job_crawler.py --site seek --keywords "data analyst" --location Auckland --max-pages 1
+```
+
+> Job boards change HTML frequently — if a crawler returns zero rows, check logs and update the site-specific plugin in `src/crawlers/`.
 
 ---
 
@@ -72,7 +91,7 @@ job_crawler.py          ← Entry point & orchestrator
 - **Auto-Pagination** — crawls up to N pages per site automatically; stops when results end
 - **Smart Deduplication** — fuzzy-match (≥85% similarity) removes the same job listed on 2+ boards
 - **Plugin Architecture** — each site is an isolated class inheriting from `BaseCrawler`
-- **Fully Config-Driven** — no raw URLs; just `{"site": "seek", "keywords": "data analyst", "location": "Auckland"}`
+- **Fully Config-Driven** — `{"site": "seek", "keywords": "data analyst", "location": "Auckland"}`
 - **n8n Webhook Control** — trigger a custom search in real-time via a URL call
 
 ---
@@ -80,15 +99,8 @@ job_crawler.py          ← Entry point & orchestrator
 ## Quick Start
 
 ```bash
-# 1. Install
 pip install -r requirements.txt
-
-# 2. Configure (edit one JSON file)
-# config.json → set your site, keywords, location
-
-# 3. Run
 python job_crawler.py
-
 # Or override on the fly:
 python job_crawler.py --site seek --keywords "data engineer" --location Wellington
 ```
@@ -112,3 +124,10 @@ n8n handles: **schedule → crawl → email report**. No manual steps required.
 - Job boards use **3 different pagination styles** (URL param, infinite scroll, API offset) — built site-specific strategies for each
 - Generic scrapers break on every site update; **plugin isolation** means only the affected class needs to be fixed
 - Cross-site deduplication requires fuzzy matching (not exact) since the same job often has slightly different titles on different boards
+
+---
+
+## Honest Notes
+
+- This is a **working prototype**, not a guaranteed production scraper — site changes can break individual plugins.
+- Respect each job board's terms of service; use for personal job search / portfolio demonstration.
